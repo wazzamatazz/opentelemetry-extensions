@@ -5,7 +5,7 @@ Jaahas.OpenTelemetry.Extensions defines extension methods to simplify the config
 
 # Registering Service Metadata via Attributes
 
-You can annotate an assembly with the `[Jaahas.OpenTelemetry.OpenTelemetryService]` attribute to mark it as an OpenTelemetry service:
+You can annotate an assembly with the `[Jaahas.OpenTelemetry.OpenTelemetryService]` attribute to mark it as containing an OpenTelemetry service:
 
 ```csharp
 [assembly: Jaahas.OpenTelemetry.OpenTelemetryService("my-service")]
