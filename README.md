@@ -40,7 +40,7 @@ Jaahas.OpenTelemetry.Extensions makes it easy to configure an OpenTelemetry Prot
 // IConfiguration.
 
 services.AddOpenTelemetry()
-    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly))
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
     // TODO: configure trace and metrics instrumentation.
     .AddOtlpExporter(configuration);
 ```
@@ -107,7 +107,7 @@ var exporterOptions = new JaahasOtlpExporterOptions() {
 };
 
 services.AddOpenTelemetry()
-    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly))
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
     // TODO: configure trace and metrics instrumentation.
     .AddOtlpExporter(exporterOptions);
 ```
@@ -116,7 +116,7 @@ services.AddOpenTelemetry()
 // Configure exporter options manually via callback.
 
 services.AddOpenTelemetry()
-    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly))
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
     // TODO: configure trace and metrics instrumentation.
     .AddOtlpExporter(exporterOptions => {
         exporterOptions.Enabled = true;
