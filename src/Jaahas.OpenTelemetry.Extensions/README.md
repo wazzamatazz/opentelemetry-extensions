@@ -15,20 +15,20 @@ When you construct your OpenTelemetry `ResourceBuilder`, you can easily register
 
 ```csharp
 services.AddOpenTelemetry()
-    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly));
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly));
 ```
 
 This will register the service using the name specified in the attribute, and the version of the assembly in `MAJOR.MINOR.PATCH` format. You can also optionally specify a service instance ID:
 
 ```csharp
 services.AddOpenTelemetry()
-    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly, "some-id"));
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly, "some-id"));
 ```
 
 
-# OpenTelemetry Protocol (OTLP) Exporter Configuration
+# Configuring a Multi-Signal OpenTelemetry Protocol (OTLP) Exporter
 
-Jaahas.OpenTelemetry.Extensions makes it easy to configure an OpenTelemetry Protocol (OTLP) exporter via the .NET configuration system. The exporter can be configured to export traces, metrics or logs, or any combination of the three:
+Jaahas.OpenTelemetry.Extensions makes it easy to configure an OpenTelemetry Protocol (OTLP) exporter via the .NET configuration system or by manually configuring exporter options. The exporter can be configured to export traces, metrics or logs, or any combination of the three:
 
 ```csharp
 // Assumes that configuration is an instance of your application's 
@@ -36,21 +36,11 @@ Jaahas.OpenTelemetry.Extensions makes it easy to configure an OpenTelemetry Prot
 
 services.AddOpenTelemetry()
     .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly))
-    .WithTracing(builder => {
-        // TODO: configure tracing
-        builder.ConfigureOtlpExporter(configuration);
-    })
-    .WithMetrics(builder => {
-        // TODO: configure metrics
-        builder.ConfigureOtlpExporter(configuration);
-    })
-    .WithLogging(configureBuilder: null, configureOptions: options => {
-        options.IncludeScopes = true;
-        options.ConfigureOtlpExporter(configuration);
-    });
+    // TODO: configure trace and metrics instrumentation.
+    .AddOtlpExporter(configuration);
 ```
 
-By default, the `ConfigureOtlpExporter` extension method will bind against a configuration section named `OpenTelemetry:Exporters:OTLP` to configure an instance of [JaahasOtlpExporterOptions](./Exporters/OpenTelemetryProtocol/JaahasOtlpExporterOptions.cs).
+By default, the `AddOtlpExporter` extension method will bind against a configuration section named `OpenTelemetry:Exporters:OTLP` to configure an instance of [JaahasOtlpExporterOptions](./Exporters/OpenTelemetryProtocol/JaahasOtlpExporterOptions.cs).
 
 The default configuration used is as follows:
 
@@ -98,12 +88,42 @@ The default configuration used is as follows:
 }
 ```
 
-Note that the default configuration means that the OTLP exporter is disabled by default and calls to the `ConfigureOtlpExporter` extension method have no effect until it is enabled.
+Note that the default configuration means that the OTLP exporter is disabled by default and calls to the `AddOtlpExporter` extension method have no effect until it is enabled.
+
+It is also possible to configure the exporter by providing your own `JaahasOtlpExporterOptions` instance, or by providing an `Action<JaahasOtlpExporterOptions>` that can be used to configure the options:
+
+```csharp
+// Configure exporter options manually.
+
+var exporterOptions = new JaahasOtlpExporterOptions() {
+    Enabled = true,
+    Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf,
+    Signals = OtlpExporterSignalKind.TracesAndLogs,
+};
+
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly))
+    // TODO: configure trace and metrics instrumentation.
+    .AddOtlpExporter(exporterOptions);
+```
+
+```csharp
+// Configure exporter options manually via callback.
+
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(typeof(MyServiceType).Assembly))
+    // TODO: configure trace and metrics instrumentation.
+    .AddOtlpExporter(exporterOptions => {
+        exporterOptions.Enabled = true;
+        exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        exporterOptions.Signals = OtlpExporterSignalKind.TracesAndLogs;
+    });
+```
 
 
-## Example Configuration
+## Example Configuration: Seq
 
-To export logs and traces to [Seq](https://datalust.co/seq) using the HTTP protobuf export format, you could use the following configuration:
+[Seq](https://datalust.co/seq) can ingest OTLP traces and logs. To export these signals to a local Seq instance using the HTTP/Protobuf export format, you could use the following configuration:
 
 ```json
 {
@@ -122,3 +142,24 @@ To export logs and traces to [Seq](https://datalust.co/seq) using the HTTP proto
     }
 }
 ```
+
+
+## Example Configuration: Jaeger
+
+[Jaeger](https://www.jaegertracing.io/) can ingest OTLP traces. To export traces to a local Jaeger instance using the HTTP/Protobuf export format, you could use the following configuration:
+
+```json
+{
+    "OpenTelemetry": {
+        "Exporters": {
+            "OTLP": {
+                "Enabled": true,
+                "Protocol": "HttpProtobuf",
+                "Signals": "Traces"
+            }
+        }
+    }
+}
+```
+
+Jaeger's OTLP trace receivers listen on the standard OTLP exporter endpoints i.e. port 4317 for gRPC and port 4318 for HTTP/Protobuf. When the `Endpoint` setting is omitted from the configuration, the exporter will default to the standard port for the export format on `localhost`.
