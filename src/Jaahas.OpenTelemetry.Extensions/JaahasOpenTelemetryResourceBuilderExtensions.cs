@@ -2,8 +2,6 @@
 
 using Jaahas.OpenTelemetry;
 
-using Microsoft.Extensions.Configuration;
-
 namespace OpenTelemetry.Resources {
 
     /// <summary>
