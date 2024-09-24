@@ -65,15 +65,12 @@ namespace OpenTelemetry {
                 throw new ArgumentNullException(nameof(configuration));
             }
 #endif
-            var exporterOptions = new JaahasOtlpExporterOptions();
 
             var configurationSection = string.IsNullOrWhiteSpace(configurationSectionName)
                 ? configuration
                 : configuration.GetSection(configurationSectionName!);
 
-            OtlpExporterConfigurationUtilities.Bind(exporterOptions, configurationSection);
-
-            return builder.AddOtlpExporter(exporterOptions);
+            return builder.AddOtlpExporter(options => OtlpExporterConfigurationUtilities.Bind(options, configurationSection));
         }
 
 
