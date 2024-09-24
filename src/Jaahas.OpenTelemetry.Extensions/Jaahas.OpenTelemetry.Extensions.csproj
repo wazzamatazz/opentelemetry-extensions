@@ -6,6 +6,7 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Jaahas.OpenTelemetry.Extensions defines extension methods to simplify the configuration of OpenTelemetry in .NET applications.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
