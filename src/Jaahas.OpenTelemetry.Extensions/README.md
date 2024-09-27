@@ -163,3 +163,47 @@ services.AddOpenTelemetry()
 ```
 
 Jaeger's OTLP trace receivers listen on the standard OTLP exporter endpoints i.e. port 4317 for gRPC and port 4318 for HTTP/Protobuf. When the `Endpoint` setting is omitted from the configuration, the exporter will default to the standard port for the export format on `localhost`.
+
+
+## Configuring Multiple Exporters
+
+You can also configure multiple named exporters by providing a name to the `AddOtlpExporter` extension method. For example, if you wanted to export logs to Seq and traces to Jaeger:
+
+```csharp
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
+    // TODO: configure trace and metrics instrumentation.
+    .AddOtlpExporter("seq", 
+        configuration, 
+        configurationSectionName: "OpenTelemetry:Exporters:OTLP:Seq")
+    .AddOtlpExporter("jaeger", 
+        configuration, 
+        configurationSectionName: "OpenTelemetry:Exporters:OTLP:Jaeger");
+```
+
+You would then configure the exporters in your `appsettings.json` file as follows:
+
+```json
+{
+    "OpenTelemetry": {
+        "Exporters": {
+            "OTLP": {
+                "Seq": {
+                    "Enabled": true,
+                    "Protocol": "HttpProtobuf",
+                    "Endpoint": "http://localhost:5341/ingest/otlp",
+                    "Signals": "Logs",
+                    "Headers": {
+                        "X-Seq-ApiKey": "your-api-key"
+                    }
+                },
+                "Jaeger": {
+                    "Enabled": true,
+                    "Protocol": "HttpProtobuf",
+                    "Signals": "Traces"
+                }
+            }
+        }
+    }
+}
+```
