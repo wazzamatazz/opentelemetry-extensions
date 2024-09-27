@@ -33,7 +33,38 @@ namespace OpenTelemetry.Trace {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="configuration"/> is <see langword="null"/>.
         /// </exception>
-        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection) {
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection) 
+            => builder.AddOtlpExporter(null, configuration, configurationSectionName);
+
+
+        /// <summary>
+        /// Adds an OpenTelemetry Protocol (OTLP) exporter that is configured using the provided 
+        /// <paramref name="configuration"/>.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="name">
+        ///   The name for the OTLP exporter configuration.
+        /// </param>
+        /// <param name="configuration">
+        ///   The <see cref="IConfiguration"/> containing the OTLP exporter configuration.
+        /// </param>
+        /// <param name="configurationSectionName">
+        ///   The configuration section to bind the OTLP exporter configuration from. Specify 
+        ///   <see langword="null"/> or white space to bind directly against the root of the 
+        ///   <paramref name="configuration"/>.
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="builder"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="configuration"/> is <see langword="null"/>.
+        /// </exception>
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, string? name, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection) {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(configuration);
@@ -54,7 +85,7 @@ namespace OpenTelemetry.Trace {
 
             OtlpExporterConfigurationUtilities.Bind(options, configurationSection);
 
-            return builder.AddOtlpExporter(options);
+            return builder.AddOtlpExporter(name, options);
         }
 
 
@@ -77,7 +108,33 @@ namespace OpenTelemetry.Trace {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="configure"/> is <see langword="null"/>.
         /// </exception>
-        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, Action<JaahasOtlpExporterOptions> configure) {
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, Action<JaahasOtlpExporterOptions> configure) 
+            => builder.AddOtlpExporter(null, configure);
+
+
+        /// <summary>
+        /// Adds an OpenTelemetry Protocol (OTLP) exporter that is configured using the provided 
+        /// delegate.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="name">
+        ///   The name for the OTLP exporter configuration.
+        /// </param>
+        /// <param name="configure">
+        ///   The delegate used to configure the OTLP exporter options.
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="builder"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="configure"/> is <see langword="null"/>.
+        /// </exception>
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, string? name, Action<JaahasOtlpExporterOptions> configure) {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(configure);
@@ -93,7 +150,7 @@ namespace OpenTelemetry.Trace {
             var options = new JaahasOtlpExporterOptions();
             configure.Invoke(options);
 
-            return builder.AddOtlpExporter(options);
+            return builder.AddOtlpExporter(name, options);
         }
 
 
@@ -116,7 +173,33 @@ namespace OpenTelemetry.Trace {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="options"/> is <see langword="null"/>.
         /// </exception>
-        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, JaahasOtlpExporterOptions options) {
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, JaahasOtlpExporterOptions options) 
+            => builder.AddOtlpExporter(null, options);
+
+
+        /// <summary>
+        /// Adds an OpenTelemetry Protocol (OTLP) exporter that is configured using the provided 
+        /// options.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="name">
+        ///   The name for the OTLP exporter configuration.
+        /// </param>
+        /// <param name="options">
+        ///   The OTLP exporter options.
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="builder"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="options"/> is <see langword="null"/>.
+        /// </exception>
+        public static TracerProviderBuilder AddOtlpExporter(this TracerProviderBuilder builder, string? name, JaahasOtlpExporterOptions options) {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(options);
@@ -130,7 +213,7 @@ namespace OpenTelemetry.Trace {
 #endif
 
             if (options.Enabled && options.Signals.HasFlag(OtlpExporterSignalKind.Traces)) {
-                builder.AddOtlpExporter(opts => OtlpExporterConfigurationUtilities.ConfigureOtlpExporterOptions(opts, options, OtlpExporterSignalKind.Traces));
+                builder.AddOtlpExporter(name, opts => OtlpExporterConfigurationUtilities.ConfigureOtlpExporterOptions(opts, options, OtlpExporterSignalKind.Traces));
             }
 
             return builder;
