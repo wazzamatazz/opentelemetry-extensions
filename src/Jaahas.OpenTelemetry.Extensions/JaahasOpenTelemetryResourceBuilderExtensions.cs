@@ -43,8 +43,7 @@ namespace OpenTelemetry.Resources {
         ///     <see cref="AssemblyName.Name"/> property is used as the service name.
         ///   </item>
         ///   <item>
-        ///     If neither of the above conditions are met, an <see cref="InvalidOperationException"/> is 
-        ///     thrown when the resource is built.
+        ///     If neither of the above conditions are met, the service name will be <c>unknown_service</c>.
         ///   </item>
         /// </list>
         /// 
@@ -98,8 +97,9 @@ namespace OpenTelemetry.Resources {
         ///     <see cref="AssemblyName.Name"/> property is used as the service name.
         ///   </item>
         ///   <item>
-        ///     If neither of the above conditions are met, an <see cref="InvalidOperationException"/> is 
-        ///     thrown when the resource is built.
+        ///     If neither of the above conditions are met, the service name will be <c>unknown_service:{entry_assembly_name}</c> 
+        ///     if <see cref="Assembly.GetEntryAssembly"/> has a non-<see langword="null"/> name, 
+        ///     or <c>unknown_service</c> otherwise.
         ///   </item>
         /// </list>
         /// 
@@ -163,8 +163,9 @@ namespace OpenTelemetry.Resources {
         ///     <see cref="AssemblyName.Name"/> property is used as the service name.
         ///   </item>
         ///   <item>
-        ///     If neither of the above conditions are met, an <see cref="InvalidOperationException"/> is 
-        ///     thrown when the resource is built.
+        ///     If neither of the above conditions are met, the service name will be <c>unknown_service:{entry_assembly_name}</c> 
+        ///     if <see cref="Assembly.GetEntryAssembly"/> has a non-<see langword="null"/> name, 
+        ///     or <c>unknown_service</c> otherwise.
         ///   </item>
         /// </list>
         /// 

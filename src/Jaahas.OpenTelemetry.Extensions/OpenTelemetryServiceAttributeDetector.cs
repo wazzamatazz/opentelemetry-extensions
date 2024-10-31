@@ -50,11 +50,17 @@ namespace Jaahas.OpenTelemetry {
         /// <inheritdoc/>
         public Resource Detect() {
             var attr = _assembly.GetCustomAttribute<OpenTelemetryServiceAttribute>();
-            var serviceName = attr?.Name ?? _assembly.GetName()?.Name ?? throw new InvalidOperationException("Unable to infer service name from assembly. The assembly must be annotated with an [OpenTelemetryService] attribute or it must define an assembly name.");
+            var serviceName = attr?.Name ?? _assembly.GetName()?.Name;
+            if (string.IsNullOrWhiteSpace(serviceName)) {
+                var entryAssemblyName = Assembly.GetEntryAssembly()?.GetName()?.Name;
+                serviceName = string.IsNullOrWhiteSpace(entryAssemblyName)
+                    ? "unknown_service"
+                    : $"unknown_service:{entryAssemblyName}";
+            }
 
             return ResourceBuilder.CreateDefault()
                 .AddService(
-                    serviceName,
+                    serviceName!,
                     serviceNamespace: attr?.Namespace,
                     serviceVersion: _assembly.GetName()?.Version?.ToString(3),
                     serviceInstanceId: _serviceInstanceId)
