@@ -25,6 +25,13 @@ services.AddOpenTelemetry()
     .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly, "some-id"));
 ```
 
+If your entry assembly is annotated with an `[Jaahas.OpenTelemetry.OpenTelemetryService]` attribute you can also use the `AddDefaultService` extension method to simplify registration:
+
+```csharp
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddDefaultService());
+```
+
 
 # Configuring a Multi-Signal OpenTelemetry Protocol (OTLP) Exporter
 
