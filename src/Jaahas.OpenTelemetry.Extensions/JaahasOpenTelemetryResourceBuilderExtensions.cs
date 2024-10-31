@@ -10,6 +10,56 @@ namespace OpenTelemetry.Resources {
     public static class JaahasOpenTelemetryResourceBuilderExtensions {
 
         /// <summary>
+        /// Adds service information to a <see cref="ResourceBuilder"/> using the assembly 
+        /// returned by <see cref="Assembly.GetEntryAssembly"/> to determine the service name and 
+        /// version.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="ResourceBuilder"/>.
+        /// </param>
+        /// <param name="serviceInstanceId">
+        ///   The optional unique identifier for the service instance. If <see langword="null"/> 
+        ///   or white space, as service identifier will automatically be generated.
+        /// </param>
+        /// <returns>
+        ///   The <see cref="ResourceBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="builder"/> is <see langword="null"/>.
+        /// </exception>
+        /// <remarks>
+        /// 
+        /// <para>
+        ///   The service name is determined using the following rules:
+        /// </para>
+        /// 
+        /// <list type="number">
+        ///   <item>
+        ///     If the entry assembly is annotated with an <see cref="OpenTelemetryServiceAttribute"/>, 
+        ///     the <see cref="OpenTelemetryServiceAttribute.Name"/> is used as the service name.
+        ///   </item>
+        ///   <item>
+        ///     If <see cref="Assembly.GetName()"/> returns a non-<see langword="null"/> value, the 
+        ///     <see cref="AssemblyName.Name"/> property is used as the service name.
+        ///   </item>
+        ///   <item>
+        ///     If neither of the above conditions are met, an <see cref="InvalidOperationException"/> is 
+        ///     thrown when the resource is built.
+        ///   </item>
+        /// </list>
+        /// 
+        /// <para>
+        ///   The service version is determined using the <see cref="AssemblyName.Version"/> of the 
+        ///   entry assembly, formatted as <c>MAJOR.MINOR.PATCH</c>. If an <see cref="AssemblyName"/> 
+        ///   is not available for the assembly, the service version will not be set.
+        /// </para>
+        /// 
+        /// </remarks>
+        public static ResourceBuilder AddDefaultService(this ResourceBuilder builder, string? serviceInstanceId = null) 
+            => builder.AddService(Assembly.GetEntryAssembly()!, serviceInstanceId);
+
+
+        /// <summary>
         /// Adds service information to a <see cref="ResourceBuilder"/> using the specified 
         /// assembly to determine the service name and version.
         /// </summary>
@@ -20,7 +70,8 @@ namespace OpenTelemetry.Resources {
         ///   The assembly to use to determine the service name and version.
         /// </param>
         /// <param name="serviceInstanceId">
-        ///   The optional unique identifier for the service instance.
+        ///   The optional unique identifier for the service instance. If <see langword="null"/> 
+        ///   or white space, as service identifier will automatically be generated.
         /// </param>
         /// <returns>
         ///   The <see cref="ResourceBuilder"/>.
@@ -30,10 +81,6 @@ namespace OpenTelemetry.Resources {
         /// </exception>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="assembly"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///   <paramref name="assembly"/> is not annotated with an <see cref="OpenTelemetryServiceAttribute"/> 
-        ///   and <see cref="Assembly.GetName()"/> returns <see langword="null"/>.
         /// </exception>
         /// <remarks>
         /// 
@@ -52,7 +99,7 @@ namespace OpenTelemetry.Resources {
         ///   </item>
         ///   <item>
         ///     If neither of the above conditions are met, an <see cref="InvalidOperationException"/> is 
-        ///     thrown.
+        ///     thrown when the resource is built.
         ///   </item>
         /// </list>
         /// 
@@ -76,15 +123,7 @@ namespace OpenTelemetry.Resources {
                 throw new ArgumentNullException(nameof(assembly));
             }
 #endif
-
-            var attr = assembly.GetCustomAttribute<OpenTelemetryServiceAttribute>();
-            var serviceName = attr?.Name ?? assembly.GetName()?.Name ?? throw new InvalidOperationException("Unable to infer service name from assembly. The assembly must be annotated with an [OpenTelemetryService] attribute or it must define an assembly name.");
-
-            if (attr != null) {
-                builder.AddService(serviceName, serviceVersion: assembly.GetName()?.Version?.ToString(3), serviceInstanceId: serviceInstanceId);
-            }
-
-            return builder;
+            return builder.AddDetector(new OpenTelemetryServiceAttributeDetector(assembly, serviceInstanceId));
         }
 
 
@@ -99,17 +138,14 @@ namespace OpenTelemetry.Resources {
         ///   The <see cref="ResourceBuilder"/>.
         /// </param>
         /// <param name="serviceInstanceId">
-        ///   The optional unique identifier for the service instance.
+        ///   The optional unique identifier for the service instance. If <see langword="null"/> 
+        ///   or white space, as service identifier will automatically be generated.
         /// </param>
         /// <returns>
         ///   The <see cref="ResourceBuilder"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="builder"/> is <see langword="null"/>.
-        /// </exception>
-        /// <exception cref="InvalidOperationException">
-        ///   The assembly containing <typeparamref name="T"/> is not annotated with an <see cref="OpenTelemetryServiceAttribute"/> 
-        ///   and <see cref="Assembly.GetName()"/> returns <see langword="null"/>.
         /// </exception>
         /// <remarks>
         /// 
@@ -128,7 +164,7 @@ namespace OpenTelemetry.Resources {
         ///   </item>
         ///   <item>
         ///     If neither of the above conditions are met, an <see cref="InvalidOperationException"/> is 
-        ///     thrown.
+        ///     thrown when the resource is built.
         ///   </item>
         /// </list>
         /// 
@@ -139,9 +175,8 @@ namespace OpenTelemetry.Resources {
         /// </para>
         /// 
         /// </remarks>
-        public static ResourceBuilder AddService<T>(this ResourceBuilder builder, string? serviceInstanceId = null) {
-            return builder.AddService(typeof(T).Assembly, serviceInstanceId);
-        }
+        public static ResourceBuilder AddService<T>(this ResourceBuilder builder, string? serviceInstanceId = null)
+            => builder.AddService(typeof(T).Assembly, serviceInstanceId);
 
     }
 }
