@@ -11,6 +11,11 @@
         /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// The namespace for the service.
+        /// </summary>
+        public string? Namespace { get; set; }
+
 
         /// <summary>
         /// Creates a new <see cref="OpenTelemetryServiceAttribute"/> instance.
