@@ -7,7 +7,7 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddHostedService<Worker>();
 
 builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService("OtlpExporterExample"))
+    .ConfigureResource(resource => resource.AddDefaultService())
     .AddOtlpExporter(builder.Configuration)
     .WithTracing(tracing => tracing.AddSource(Worker.ActivitySourceName));
 
