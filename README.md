@@ -102,7 +102,10 @@ The default configuration used is as follows:
 
 Note that the default configuration means that the OTLP exporter is disabled by default and calls to the `AddOtlpExporter` extension method have no effect until it is enabled.
 
-It is also possible to configure the exporter by providing your own `JaahasOtlpExporterOptions` instance, or by providing an `Action<JaahasOtlpExporterOptions>` that can be used to configure the options:
+
+## Manually Specifying Options
+
+You can configure the exporter by manually providing a `JaahasOtlpExporterOptions` if preferred:
 
 ```csharp
 // Configure exporter options manually.
@@ -119,6 +122,12 @@ services.AddOpenTelemetry()
     .AddOtlpExporter(exporterOptions);
 ```
 
+
+## Configuring Options via Callback
+
+You can also configure the exporter by providing an `Action<JaahasOtlpExporterOptions>` that can be used to configure the options:
+
+
 ```csharp
 // Configure exporter options manually via callback.
 
@@ -130,6 +139,38 @@ services.AddOpenTelemetry()
         exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
         exporterOptions.Signals = OtlpExporterSignalKind.TracesAndLogs;
     });
+```
+
+
+## Combining Configuration and Callbacks
+
+You can also specify a delegate to configure the options after the configuration section has been bound:
+
+```csharp
+// Bind configuration and then update via callback.
+
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
+    // TODO: configure trace and metrics instrumentation.
+    .AddOtlpExporter(configuration, configure: exporterOptions => {
+        exporterOptions.Enabled = true;
+    });
+```
+
+
+## Using `IConfigureOptions<T>`, `IConfigureNamedOptions<T>` or `IPostConfigureOptions<T>`
+
+You can register a custom `IConfigureOptions<JaahasOtlpExporterOptions>`, `IConfigureNamedOptions<JaahasOtlpExporterOptions>` or `IPostConfigureOptions<JaahasOtlpExporterOptions>` as a singleton service to configure or override the exporter options. This is useful when you need to perform more complex configuration that cannot be achieved via the configuration system alone.
+
+```csharp
+// Perform configuration via IPostConfigureOptions<T>.
+
+services.AddSingleton<IPostConfigureOptions<JaahasOtlpExporterOptions>, MyPostConfigureOptions>();
+
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
+    // TODO: configure trace and metrics instrumentation.
+    .AddOtlpExporter();
 ```
 
 
@@ -193,7 +234,7 @@ services.AddOpenTelemetry()
         configurationSectionName: "OpenTelemetry:Exporters:OTLP:Jaeger");
 ```
 
-You would then configure the exporters in your `appsettings.json` file as follows:
+You could then configure the exporters in your `appsettings.json` file as follows:
 
 ```json
 {
