@@ -125,7 +125,7 @@ namespace OpenTelemetry {
         /// </para>
         /// 
         /// </remarks>
-        public static OpenTelemetryBuilder AddOtlpExporter(this OpenTelemetryBuilder builder, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, Action<JaahasOtlpExporterOptions>? configure = null) 
+        public static OpenTelemetryBuilder AddOtlpExporter(this OpenTelemetryBuilder builder, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, Action<JaahasOtlpExporterOptions>? configure = null)
             => builder.AddOtlpExporter(null, configuration, configurationSectionName, configure);
 
 
@@ -227,7 +227,7 @@ namespace OpenTelemetry {
         /// </para>
         /// 
         /// </remarks>
-        public static OpenTelemetryBuilder AddOtlpExporter(this OpenTelemetryBuilder builder, Action<JaahasOtlpExporterOptions> configure) 
+        public static OpenTelemetryBuilder AddOtlpExporter(this OpenTelemetryBuilder builder, Action<JaahasOtlpExporterOptions> configure)
             => builder.AddOtlpExporter(null, configure);
 
 
@@ -309,7 +309,7 @@ namespace OpenTelemetry {
         /// </para>
         /// 
         /// </remarks>
-        public static OpenTelemetryBuilder AddOtlpExporter(this OpenTelemetryBuilder builder, JaahasOtlpExporterOptions options) 
+        public static OpenTelemetryBuilder AddOtlpExporter(this OpenTelemetryBuilder builder, JaahasOtlpExporterOptions options)
             => builder.AddOtlpExporter(null, options);
 
 
@@ -371,6 +371,113 @@ namespace OpenTelemetry {
                     builder.IncludeScopes = true;
                     builder.AddOtlpExporter(name, options);
                 });
+            }
+
+            return builder;
+        }
+
+
+        /// <summary>
+        /// Adds named OpenTelemetry Protocol (OTLP) exporters that are configured using the 
+        /// provided <see cref="IConfiguration"/>.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="OpenTelemetryBuilder"/> to configure.
+        /// </param>
+        /// <param name="configuration">
+        ///   The <see cref="IConfiguration"/> containing the OTLP exporter configuration.
+        /// </param>
+        /// <param name="configurationSectionName">
+        ///   The root configuration section to bind the OTLP exporter configurations from. 
+        ///   Specify <see langword="null"/> to bind directly against the root of the 
+        ///   <paramref name="configuration"/>.
+        /// </param>
+        /// <param name="configure">
+        ///   A delegate used to further configure the OTLP exporter options after binding the 
+        ///   configuration section.
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="OpenTelemetryBuilder"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="builder"/> is <see langword="null"/>.
+        /// </exception>
+        /// <exception cref="ArgumentNullException">
+        ///   <paramref name="configuration"/> is <see langword="null"/>.
+        /// </exception>
+        /// <remarks>
+        /// 
+        /// <para>
+        ///   Use this method in preference to <see cref="AddOtlpExporter(OpenTelemetryBuilder, string?, IConfiguration, string?, Action{JaahasOtlpExporterOptions}?)"/> 
+        ///   when your configuration contains multiple named OTLP exporter configurations that may 
+        ///   not be known at compile time.
+        /// </para>
+        /// 
+        /// <para>
+        ///   This method will register a named OTLP exporter for each child key under the provided 
+        ///   <paramref name="configuration"/> and <paramref name="configurationSectionName"/>. 
+        ///   This allows you to configure additional destinations for telemetry signals using 
+        ///   configuration only. For example, the following configuration could be used to export 
+        ///   signals to both a remote Seq instances and a local Jaeger instance:
+        /// </para>
+        /// 
+        /// <code language="json">
+        /// {
+        ///   "OpenTelemetry": {
+        ///     "Exporters": {
+        ///       "OTLP": {
+        ///         "Seq": {
+        ///           "Enabled": true,
+        ///           "Protocol": "HttpProtobuf",
+        ///           "Endpoint": "https://my-seq-server/ingest/otlp",
+        ///           "Signals": "TracesAndLogs",
+        ///           "Headers": {
+        ///             "X-Seq-ApiKey": "my-api-key"
+        ///           }
+        ///         },
+        ///         "Jaeger": {
+        ///           "Enabled": true,
+        ///           "Protocol": "HttpProtobuf",
+        ///           "Signals": "Traces"
+        ///         }
+        ///       }
+        ///     }
+        ///   }
+        /// }
+        /// </code>
+        /// 
+        /// </remarks>
+        public static OpenTelemetryBuilder AddNamedOtlpExporters(
+            this OpenTelemetryBuilder builder, 
+            IConfiguration configuration, 
+            string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, 
+            Action<string, JaahasOtlpExporterOptions>? configure = null
+        ) {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configuration);
+#else
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            if (configuration == null) {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+#endif
+
+            var configurationSection = string.IsNullOrWhiteSpace(configurationSectionName)
+                ? configuration
+                : configuration.GetSection(configurationSectionName!);
+
+            foreach (var child in configurationSection.GetChildren()) {
+                var name = child.Key;
+                builder.AddOtlpExporter(
+                    name, 
+                    child, 
+                    configurationSectionName: null, 
+                    configure: configure == null 
+                        ? null 
+                        : options => configure?.Invoke(name, options));
             }
 
             return builder;
