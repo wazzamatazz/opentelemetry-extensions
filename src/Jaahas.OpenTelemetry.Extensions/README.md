@@ -255,3 +255,16 @@ You would then configure the exporters in your `appsettings.json` file as follow
     }
 }
 ```
+
+Alternatively, you can also use the `AddNamedOtlpExporters` extension method to automatically configure a named exporter for every child section found in a given configuration section:
+
+```csharp
+services.AddOpenTelemetry()
+    .ConfigureResource(builder => builder.AddService(typeof(MyType).Assembly))
+    // TODO: configure trace and metrics instrumentation.
+    .AddNamedOtlpExporters(
+        configuration, 
+        configurationSectionName: "OpenTelemetry:Exporters:OTLP"));
+```
+
+This approach is particularly useful when the number and names of the exporters is not known at compile time, as it allows additional exporters to be added solely via a configuration change.
