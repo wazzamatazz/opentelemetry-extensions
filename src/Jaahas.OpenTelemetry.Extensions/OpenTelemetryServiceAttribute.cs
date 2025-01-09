@@ -1,7 +1,7 @@
 ﻿namespace Jaahas.OpenTelemetry {
 
     /// <summary>
-    /// Marks an assembly as definint an OpenTelemetry service.
+    /// Marks an assembly as defining an OpenTelemetry service.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly)]
     public sealed class OpenTelemetryServiceAttribute : Attribute {
