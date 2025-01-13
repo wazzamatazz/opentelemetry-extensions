@@ -1,4 +1,7 @@
-﻿using Jaahas.OpenTelemetry.Exporters.OpenTelemetryProtocol;
+﻿using System.Diagnostics;
+
+using Jaahas.OpenTelemetry.Exporters.OpenTelemetryProtocol;
+using Jaahas.OpenTelemetry.Trace;
 
 using Microsoft.Extensions.Configuration;
 
@@ -217,6 +220,168 @@ namespace OpenTelemetry.Trace {
             }
 
             return builder;
+        }
+
+
+        /// <summary>
+        /// Configures default tags that will be added to trace activities.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="tags">
+        ///   The default tags to add to trace activities.
+        /// </param>
+        /// <param name="shouldAdd">
+        ///   A delegate that determines if the default tags should be added to a given activity. 
+        ///   Specify <see langword="null"/> to add default tags if the activity is a top-level 
+        ///   activity only (i.e. <see cref="Activity.Parent"/> is <see langword="null"/>).
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method can be called multiple times to add multiple sets of default tags.
+        /// </remarks>
+        public static TracerProviderBuilder AddDefaultTags(this TracerProviderBuilder builder, TagList tags, Func<Activity, bool>? shouldAdd = null) {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(builder);
+#else 
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+#endif
+            return builder.AddProcessor(new DefaultTagsTraceProcessor(tags, shouldAdd));
+        }
+
+
+        /// <summary>
+        /// Configures default tags that will be added trace activities.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="tags">
+        ///   The default tags to add to trace activities.
+        /// </param>
+        /// <param name="shouldAdd">
+        ///   A delegate that determines if the default tags should be added to a given activity. 
+        ///   Specify <see langword="null"/> to add default tags if the activity is a top-level 
+        ///   activity only (i.e. <see cref="Activity.Parent"/> is <see langword="null"/>).
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method can be called multiple times to add multiple sets of default tags.
+        /// </remarks>
+        public static TracerProviderBuilder AddDefaultTags(this TracerProviderBuilder builder, ReadOnlySpan<KeyValuePair<string, object?>> tags, Func<Activity, bool>? shouldAdd = null) {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(builder);
+#else 
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+#endif
+            return builder.AddProcessor(new DefaultTagsTraceProcessor(new TagList(tags), shouldAdd));
+        }
+
+
+        /// <summary>
+        /// Configures default tags that will be added to trace activities.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="tags">
+        ///   The default tags to add to trace activities.
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method can be called multiple times to add multiple sets of default tags.
+        /// </remarks>
+        public static TracerProviderBuilder AddDefaultTags(this TracerProviderBuilder builder, params KeyValuePair<string, object?>[] tags) => builder.AddDefaultTags(null, tags);
+
+
+        /// <summary>
+        /// Configures default tags that will be added to trace activities.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="shouldAdd">
+        ///   A delegate that determines if the default tags should be added to the activity. 
+        ///   Specify <see langword="null"/> to add default tags if the activity is a top-level 
+        ///   activity (i.e. <see cref="Activity.Parent"/> is <see langword="null"/>).
+        /// </param>
+        /// <param name="tags">
+        ///   The default tags to add to trace activities.
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method can be called multiple times to add multiple sets of default tags.
+        /// </remarks>
+        public static TracerProviderBuilder AddDefaultTags(this TracerProviderBuilder builder, Func<Activity, bool>? shouldAdd, params KeyValuePair<string, object?>[] tags) {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(builder);
+#else 
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+#endif
+            return builder.AddProcessor(new DefaultTagsTraceProcessor(new TagList(tags), shouldAdd));
+        }
+
+
+        /// <summary>
+        /// Configures default tags that will be added to activities.
+        /// </summary>
+        /// <param name="builder">
+        ///   The <see cref="TracerProviderBuilder"/> to configure.
+        /// </param>
+        /// <param name="configuration">
+        ///   The <see cref="IConfiguration"/> containing the default tags. A tag will be added 
+        ///   for each child section.
+        /// </param>
+        /// <param name="configurationSectionName">
+        ///   The name of the configuration section containing the default tags. Specify <see langword="null"/> 
+        ///   or white space to bind directly against the root of the <paramref name="configuration"/>.
+        /// </param>
+        /// <param name="shouldAdd">
+        ///   A delegate that determines if the default tags should be added to a given activity. 
+        ///   Specify <see langword="null"/> to add default tags if the activity is a top-level 
+        ///   activity only (i.e. <see cref="Activity.Parent"/> is <see langword="null"/>).
+        /// </param>
+        /// <returns>
+        ///   The updated <see cref="TracerProviderBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        ///   This method can be called multiple times to add multiple sets of default tags.
+        /// </remarks>
+        public static TracerProviderBuilder AddDefaultTags(this TracerProviderBuilder builder, IConfiguration configuration, string? configurationSectionName = "OpenTelemetry:Traces:DefaultTags", Func<Activity, bool>? shouldAdd = null) {
+#if NET8_0_OR_GREATER
+            ArgumentNullException.ThrowIfNull(builder);
+            ArgumentNullException.ThrowIfNull(configuration);
+#else 
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            if (configuration == null) {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+#endif
+
+            var section = string.IsNullOrWhiteSpace(configurationSectionName)
+                ? configuration
+                : configuration.GetSection(configurationSectionName!);
+
+            var tagList = new TagList(section.GetChildren().Select(x => new KeyValuePair<string, object?>(x.Key, x.Value)).ToArray());
+
+            return builder.AddProcessor(new DefaultTagsTraceProcessor(tagList, shouldAdd));
         }
 
     }
