@@ -281,7 +281,10 @@ The `AddDefaultTags` extension method for the `TracerProviderBuilder` type can b
 
 ```csharp
 services.AddOpenTelemetry()
-    .WithTracing(builder => builder.AddDefaultTags(new KeyValuePair<string, object?>("app.environment", "production")));
+    .WithTracing(builder => builder
+        .AddDefaultTags(new KeyValuePair<string, object?>(
+            "app.environment", 
+            "production")));
 ```
 
 You can also define default tags by passing an `IConfiguration` to the method:
@@ -306,10 +309,27 @@ The default behaviour is to add default tags to top-level activities only (i.e. 
 services.AddOpenTelemetry()
     .WithTracing(builder => builder.AddDefaultTags(
         activity => activity.Kind == ActivityKind.Server,
-        new KeyValuePair<string, object?>("app.environment", "production")));
+        new KeyValuePair<string, object?>(
+            "app.environment", 
+            "production")));
 ```
 
-`AddDefaultTags` is additive and can be called multiple times to register multiple sets of default tags. Each set can be regi
+`AddDefaultTags` is additive and can be called multiple times to register multiple sets of default tags. Each set can be registered with its own callback to determine if the tags should be added to a given activity:
+
+```csharp
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddDefaultTags(
+            activity => activity.Kind == ActivityKind.Server,
+            new KeyValuePair<string, object?>(
+                "app.environment", 
+                "production"))
+        .AddDefaultTags(
+            activity => activity.Kind == ActivityKind.Consumer,
+            new KeyValuePair<string, object?>(
+                "app.custom-tag", 
+                "some_value")));
+```
 
 
 # Building the Solution
