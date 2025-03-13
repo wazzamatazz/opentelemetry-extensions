@@ -15,7 +15,7 @@ namespace Jaahas.OpenTelemetry.Exporters.OpenTelemetryProtocol {
         /// <summary>
         /// The OTLP exporter protocol to use.
         /// </summary>
-        public OtlpExportProtocol Protocol { get; set; } = OtlpExportProtocol.Grpc;
+        public OtlpExportProtocol Protocol { get; set; } = OtlpExportProtocol.HttpProtobuf;
 
         /// <summary>
         /// The endpoint that the exporter should send data to.
