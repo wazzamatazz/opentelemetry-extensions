@@ -361,15 +361,15 @@ namespace OpenTelemetry {
             }
 
             if (options.Signals.HasFlag(OtlpExporterSignalKind.Traces)) {
-                builder.WithTracing(builder => builder.AddOtlpExporter(name, options));
+                builder.WithTracing(traces => traces.AddOtlpExporter(name, options));
             }
             if (options.Signals.HasFlag(OtlpExporterSignalKind.Metrics)) {
-                builder.WithMetrics(builder => builder.AddOtlpExporter(name, options));
+                builder.WithMetrics(metrics => metrics.AddOtlpExporter(name, options));
             }
             if (options.Signals.HasFlag(OtlpExporterSignalKind.Logs)) {
-                builder.WithLogging(configureBuilder: null, configureOptions: builder => {
-                    builder.IncludeScopes = true;
-                    builder.AddOtlpExporter(name, options);
+                builder.WithLogging(configureBuilder: null, configureOptions: logging => {
+                    logging.IncludeScopes = true;
+                    logging.AddOtlpExporter(name, options);
                 });
             }
 
@@ -477,7 +477,7 @@ namespace OpenTelemetry {
                     configurationSectionName: null, 
                     configure: configure == null 
                         ? null 
-                        : options => configure?.Invoke(name, options));
+                        : options => configure.Invoke(name, options));
             }
 
             return builder;
