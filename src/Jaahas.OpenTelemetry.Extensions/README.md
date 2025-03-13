@@ -60,7 +60,7 @@ The default configuration used is as follows:
                 "Enabled": false,
 
                 // Protocol can be "Grpc" or "HttpProtobuf".
-                "Protocol": "Grpc",
+                "Protocol": "HttpProtobuf",
 
                 // Endpoint is inferred from the export protocol if not 
                 // specified.

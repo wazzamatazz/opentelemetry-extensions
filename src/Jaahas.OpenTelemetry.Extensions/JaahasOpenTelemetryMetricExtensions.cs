@@ -24,6 +24,10 @@ namespace OpenTelemetry.Metrics {
         ///   <see langword="null"/> or white space to bind directly against the root of the 
         ///   <paramref name="configuration"/>.
         /// </param>
+        /// <param name="configure">
+        ///   An optional delegate used to further configure the OTLP exporter options after 
+        ///   binding the configuration section.
+        /// </param>
         /// <returns>
         ///   The updated <see cref="MeterProviderBuilder"/>.
         /// </returns>
@@ -33,8 +37,8 @@ namespace OpenTelemetry.Metrics {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="configuration"/> is <see langword="null"/>.
         /// </exception>
-        public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection)
-            => builder.AddOtlpExporter(null, configuration, configurationSectionName);
+        public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, Action<JaahasOtlpExporterOptions>? configure = null)
+            => builder.AddOtlpExporter(null, configuration, configurationSectionName, configure);
 
 
         /// <summary>
@@ -55,6 +59,10 @@ namespace OpenTelemetry.Metrics {
         ///   <see langword="null"/> or white space to bind directly against the root of the 
         ///   <paramref name="configuration"/>.
         /// </param>
+        /// <param name="configure">
+        ///   An optional delegate used to further configure the OTLP exporter options after 
+        ///   binding the configuration section.
+        /// </param>
         /// <returns>
         ///   The updated <see cref="MeterProviderBuilder"/>.
         /// </returns>
@@ -64,7 +72,7 @@ namespace OpenTelemetry.Metrics {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="configuration"/> is <see langword="null"/>.
         /// </exception>
-        public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder, string? name, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection) {
+        public static MeterProviderBuilder AddOtlpExporter(this MeterProviderBuilder builder, string? name, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, Action<JaahasOtlpExporterOptions>? configure = null) {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(builder);
             ArgumentNullException.ThrowIfNull(configuration);
@@ -84,7 +92,8 @@ namespace OpenTelemetry.Metrics {
                 : configuration.GetSection(configurationSectionName!);
 
             OtlpExporterConfigurationUtilities.Bind(options, configurationSection);
-
+            configure?.Invoke(options);
+            
             return builder.AddOtlpExporter(name, options);
         }
 
