@@ -23,6 +23,10 @@ namespace OpenTelemetry.Logs {
         ///   <see langword="null"/> or white space to bind directly against the root of the 
         ///   <paramref name="configuration"/>.
         /// </param>
+        /// <param name="configure">
+        ///   An optional delegate used to further configure the OTLP exporter options after 
+        ///   binding the configuration section.
+        /// </param>
         /// <returns>
         ///   The updated <see cref="OpenTelemetryLoggerOptions"/>.
         /// </returns>
@@ -32,8 +36,8 @@ namespace OpenTelemetry.Logs {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="configuration"/> is <see langword="null"/>.
         /// </exception>
-        public static OpenTelemetryLoggerOptions AddOtlpExporter(this OpenTelemetryLoggerOptions loggerOptions, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection) 
-            => loggerOptions.AddOtlpExporter(null, configuration, configurationSectionName);
+        public static OpenTelemetryLoggerOptions AddOtlpExporter(this OpenTelemetryLoggerOptions loggerOptions, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, Action<JaahasOtlpExporterOptions>? configure = null) 
+            => loggerOptions.AddOtlpExporter(null, configuration, configurationSectionName, configure);
 
 
         /// <summary>
@@ -53,6 +57,10 @@ namespace OpenTelemetry.Logs {
         ///   <see langword="null"/> or white space to bind directly against the root of the 
         ///   <paramref name="configuration"/>.
         /// </param>
+        /// <param name="configure">
+        ///   An optional delegate used to further configure the OTLP exporter options after 
+        ///   binding the configuration section.
+        /// </param>
         /// <returns>
         ///   The updated <see cref="OpenTelemetryLoggerOptions"/>.
         /// </returns>
@@ -62,7 +70,7 @@ namespace OpenTelemetry.Logs {
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="configuration"/> is <see langword="null"/>.
         /// </exception>
-        public static OpenTelemetryLoggerOptions AddOtlpExporter(this OpenTelemetryLoggerOptions loggerOptions, string? name, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection) {
+        public static OpenTelemetryLoggerOptions AddOtlpExporter(this OpenTelemetryLoggerOptions loggerOptions, string? name, IConfiguration configuration, string? configurationSectionName = OtlpExporterConfigurationUtilities.DefaultOtlpExporterConfigurationSection, Action<JaahasOtlpExporterOptions>? configure = null) {
 #if NET8_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(loggerOptions);
             ArgumentNullException.ThrowIfNull(configuration);
@@ -81,6 +89,7 @@ namespace OpenTelemetry.Logs {
                 : configuration.GetSection(configurationSectionName!);
 
             OtlpExporterConfigurationUtilities.Bind(options, configurationSection);
+            configure?.Invoke(options);
 
             return loggerOptions.AddOtlpExporter(name, options);
         }
